@@ -1,0 +1,49 @@
+version: "2"
+services:
+    mosquitto:
+        image: eclipse-mosquitto
+        restart: always
+        ports:
+            - "9001:9001"
+            - "1883:1883"
+        volumes:
+            - ./mosquitto/log:/mosquitto/log
+    nodered:
+        image: nodered/node-red-docker:latest
+        restart: always
+        links:
+            - influxdb
+            - mosquitto
+        ports:
+            - "1880:1880"
+        volumes:
+            - ./nodered/data:/data
+
+    influxdb:
+        image: influxdb
+        restart: always
+        environment:
+            - INFLUXDB_USER="test"
+            - INFLUXDB_USER_PASSWORD="test"
+            - INFLUXDB_DB="iot"
+        ports:
+            - "8083:8083"
+            - "8086:8086"
+        volumes:
+            - persistent-influxdb:/var/lib/influxdb
+
+    grafana:
+        image: grafana/grafana
+        restart: always
+        links:
+            - influxdb
+        ports:
+            - "3000:3000"
+        volumes:
+            - persistent-grafana:/var/lib/grafana
+            - ./grafana/provisioning/:/etc/grafana/provisioning/
+            - ./grafana/log:/var/log/grafana
+
+volumes:
+    persistent-influxdb:
+    persistent-grafana:
