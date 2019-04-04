@@ -1,0 +1,40 @@
+version: "2"
+services:
+    nodered:
+        image: nodered/node-red-docker:rpi
+        restart: always
+        links:
+            - influxdb
+        ports:
+            - "1880:1880"
+        volumes:
+            - /home/pirate/IOTCloudMQTT-RPi/nodered/data:/data
+
+    influxdb:
+        image: hypriot/rpi-influxdb:latest
+        restart: always
+        environment:
+            - ADMIN_USER="test"
+            - INFLUXDB_INIT_PWD="test"
+            - PRE_CREATE_DB="iot"
+        ports:
+            - "8083:8083"
+            - "8086:8086"
+        volumes:
+            - persistent-influxdb:/var/lib/influxdb
+
+    grafana:
+        image: grafana/grafana:master
+        restart: always
+        links:
+            - influxdb
+        ports:
+            - "3000:3000"
+        volumes:
+            - persistent-grafana:/var/lib/grafana
+            - /home/pirate/IOTCloudMQTT-RPi/grafana/provisioning/:/etc/grafana/provisioning/
+            - /home/pirate/IOTCloudMQTT-RPi/grafana/log:/var/log/grafana
+
+volumes:
+    persistent-influxdb:
+    persistent-grafana:
